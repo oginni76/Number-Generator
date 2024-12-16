@@ -8,6 +8,7 @@ import * as XLSX from 'xlsx';
 export default function NumberGeneratorApp() {
   const [startNumber, setStartNumber] = useState<string>('1');
   const [endNumber, setEndNumber] = useState<string>('10');
+  const [incrementBy, setIncrementBy] = useState<string>('1');
   const [generatedNumbers, setGeneratedNumbers] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,8 +19,15 @@ export default function NumberGeneratorApp() {
     // Convert input to BigInt
     const start = BigInt(startNumber);
     const end = BigInt(endNumber);
+    const increment = BigInt(incrementBy);
 
-    // Validate that start is lower than end
+    // Validate inputs
+    if (increment <= BigInt(0)) {
+      setError('Increment must be a positive number');
+      setGeneratedNumbers([]);
+      return;
+    }
+
     if (start >= end) {
       setError('Start number must be lower than end number');
       setGeneratedNumbers([]);
@@ -34,7 +42,7 @@ export default function NumberGeneratorApp() {
     let count = 0;
     while (current < end && count < MAX_DISPLAY_NUMBERS) {
       numbers.push(current.toString());
-      current += BigInt(1);
+      current += increment;
       count++;
     }
 
@@ -48,8 +56,14 @@ export default function NumberGeneratorApp() {
     // Convert input to BigInt
     const start = BigInt(startNumber);
     const end = BigInt(endNumber);
+    const increment = BigInt(incrementBy);
 
-    // Validate that start is lower than end
+    // Validate inputs
+    if (increment <= BigInt(0)) {
+      setError('Increment must be a positive number');
+      return;
+    }
+
     if (start >= end) {
       setError('Start number must be lower than end number');
       return;
@@ -60,7 +74,7 @@ export default function NumberGeneratorApp() {
     let current = start;
     while (current < end) {
       excelData.push([current.toString()]);
-      current += BigInt(1);
+      current += increment;
     }
 
     // Create worksheet
@@ -76,7 +90,7 @@ export default function NumberGeneratorApp() {
 
   return (
     <div className="container mx-auto p-6 max-w-md">
-      <h1 className="text-2xl font-bold mb-4">Number Series Generator</h1>
+      <h1 className="text-2xl font-bold mb-4">Configurable Number Series Generator</h1>
       
       <div className="space-y-4">
         <div>
@@ -106,6 +120,21 @@ export default function NumberGeneratorApp() {
             }}
             className="mt-2"
             placeholder="Enter end number"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="incrementBy">Increment By</Label>
+          <Input 
+            id="incrementBy"
+            type="text" 
+            value={incrementBy} 
+            onChange={(e) => {
+              setIncrementBy(e.target.value);
+              setError(null);
+            }}
+            className="mt-2"
+            placeholder="Enter increment value"
           />
         </div>
         
