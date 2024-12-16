@@ -9,23 +9,30 @@ export default function NumberGeneratorApp() {
   const [startNumber, setStartNumber] = useState<string>('1');
   const [endNumber, setEndNumber] = useState<string>('10');
   const [generatedNumbers, setGeneratedNumbers] = useState<string[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   const generateNumbers = () => {
+    // Clear previous errors
+    setError(null);
+
     // Convert input to BigInt
     const start = BigInt(startNumber);
     const end = BigInt(endNumber);
 
-    // Ensure start is less than or equal to end
-    const startValue = start <= end ? start : end;
-    const endValue = start <= end ? end : start;
+    // Validate that start is lower than end
+    if (start >= end) {
+      setError('Start number must be lower than end number');
+      setGeneratedNumbers([]);
+      return;
+    }
 
     // Instead of creating the entire array, we'll create a limited view
     const MAX_DISPLAY_NUMBERS = 1000; // Limit display to prevent performance issues
     const numbers: string[] = [];
 
-    let current = startValue;
+    let current = start;
     let count = 0;
-    while (current <= endValue && count < MAX_DISPLAY_NUMBERS) {
+    while (current < end && count < MAX_DISPLAY_NUMBERS) {
       numbers.push(current.toString());
       current += BigInt(1);
       count++;
@@ -35,16 +42,23 @@ export default function NumberGeneratorApp() {
   };
 
   const downloadExcel = () => {
-    // Generate full range for Excel export
+    // Validate before export
+    if (error) return;
+
+    // Convert input to BigInt
     const start = BigInt(startNumber);
     const end = BigInt(endNumber);
-    const startValue = start <= end ? start : end;
-    const endValue = start <= end ? end : start;
+
+    // Validate that start is lower than end
+    if (start >= end) {
+      setError('Start number must be lower than end number');
+      return;
+    }
 
     // Create an array of arrays for Excel export
     const excelData: string[][] = [];
-    let current = startValue;
-    while (current <= endValue) {
+    let current = start;
+    while (current < end) {
       excelData.push([current.toString()]);
       current += BigInt(1);
     }
@@ -62,7 +76,7 @@ export default function NumberGeneratorApp() {
 
   return (
     <div className="container mx-auto p-6 max-w-md">
-      <h1 className="text-2xl font-bold mb-4">Large Number Series Generator</h1>
+      <h1 className="text-2xl font-bold mb-4">Number Series Generator</h1>
       
       <div className="space-y-4">
         <div>
@@ -71,7 +85,10 @@ export default function NumberGeneratorApp() {
             id="startNumber"
             type="text" 
             value={startNumber} 
-            onChange={(e) => setStartNumber(e.target.value)}
+            onChange={(e) => {
+              setStartNumber(e.target.value);
+              setError(null);
+            }}
             className="mt-2"
             placeholder="Enter start number"
           />
@@ -83,11 +100,20 @@ export default function NumberGeneratorApp() {
             id="endNumber"
             type="text" 
             value={endNumber} 
-            onChange={(e) => setEndNumber(e.target.value)}
+            onChange={(e) => {
+              setEndNumber(e.target.value);
+              setError(null);
+            }}
             className="mt-2"
             placeholder="Enter end number"
           />
         </div>
+        
+        {error && (
+          <div className="text-red-500 text-sm mb-4">
+            {error}
+          </div>
+        )}
         
         <div className="flex space-x-4">
           <Button 
@@ -99,7 +125,7 @@ export default function NumberGeneratorApp() {
           
           <Button 
             onClick={downloadExcel}
-            disabled={generatedNumbers.length === 0}
+            disabled={generatedNumbers.length === 0 || !!error}
             className="w-full"
           >
             Download Excel
